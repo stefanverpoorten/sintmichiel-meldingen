@@ -10,6 +10,7 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
   const [fotoBezig, setFotoBezig] = useState(false);
   const [fout, setFout] = useState<string | null>(null);
   const [volgnummer, setVolgnummer] = useState<string | null>(null);
+  const [gesloten, setGesloten] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const fotoInput = useRef<HTMLInputElement>(null);
 
@@ -76,10 +77,34 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
     }
   }
 
+  function sluiten() {
+    // Een browser laat een website enkel een venster sluiten dat ze zelf geopend heeft.
+    // Lukt het niet (bv. link geopend vanuit mail of bladwijzer), dan tonen we een afsluitscherm.
+    window.close();
+    setTimeout(() => setGesloten(true), 300);
+  }
+
   function nieuweMelding() {
+    setGesloten(false);
     setVolgnummer(null);
     setFotos([]);
     setFout(null);
+  }
+
+  if (volgnummer && gesloten) {
+    return (
+      <div className="kaart bevestiging">
+        <div className="vinkje" aria-hidden>✓</div>
+        <h1>Bedankt!</h1>
+        <p className="intro">
+          Je aanvraag <strong>{volgnummer}</strong> is goed ontvangen. Je kan dit venster of tabblad nu
+          sluiten.
+        </p>
+        <button className="knop secundair" onClick={nieuweMelding}>
+          Toch nog iets melden
+        </button>
+      </div>
+    );
   }
 
   if (volgnummer) {
@@ -93,9 +118,14 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
           Noteer dit nummer. Je krijgt ook een bevestiging per mail, en een nieuwe mail zodra je
           aanvraag beoordeeld is.
         </p>
-        <button className="knop secundair" onClick={nieuweMelding}>
-          Nog iets melden
-        </button>
+        <div className="knoppen-rij">
+          <button className="knop secundair" onClick={nieuweMelding}>
+            Nog iets melden
+          </button>
+          <button className="knop" onClick={sluiten}>
+            Sluiten
+          </button>
+        </div>
       </div>
     );
   }
