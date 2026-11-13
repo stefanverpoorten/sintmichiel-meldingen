@@ -1,0 +1,135 @@
+// Datamodel van de meldingsapp.
+// Elke "model" hieronder wordt een tabel in de database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Soort {
+  DEFECT
+  TAAK
+}
+
+enum Status {
+  G
+  NG
+}
+
+enum Controle {
+  OK
+  NOK
+}
+
+enum MailType {
+  NIEUWE_AANVRAAG // naar directeur/beheerder
+  ONTVANGST // ontvangstbevestiging naar aanvrager
+  STATUS_G // aanvraag doorgegeven
+  STATUS_NG // aanvraag niet uitgevoerd
+}
+
+enum MailStatus {
+  VERSTUURD
+  MISLUKT
+  TEST // testmodus: niet echt verstuurd, enkel gelogd
+}
+
+model Aanvraag {
+  id               String     @id @default(cuid())
+  volgnummer       String     @unique // bv. 2026-0001
+  ingediendOp      DateTime   @default(now())
+  naam             String
+  email            String
+  soort            Soort
+  campus           String
+  locatie          String
+  beschrijving     String
+
+  // Beheervelden
+  status           Status?
+  ngReden          String?
+  prioriteit       Int?
+  klusjesmanId     String?
+  klusjesman       Klusjesman? @relation(fields: [klusjesmanId], references: [id])
+  controle         Controle?
+  controleDatum    DateTime?
+  interneOpmerking String?
+
+  fotos            Foto[]
+  historiek        Historiek[]
+  mails            Mail[]
+
+  @@index([controle])
+  @@index([status])
+  @@index([controleDatum])
+}
+
+model Foto {
+  id          String   @id @default(cuid())
+  aanvraagId  String
+  aanvraag    Aanvraag @relation(fields: [aanvraagId], references: [id])
+  pad         String // pad naar de verkleinde foto in de opslag
+  miniatuur   String // pad naar de miniatuur
+  bestandsnaam String
+  grootte     Int
+  volgorde    Int      @default(0)
+  aangemaakt  DateTime @default(now())
+}
+
+model Klusjesman {
+  id         String     @id @default(cuid())
+  naam       String
+  actief     Boolean    @default(true)
+  aangemaakt DateTime   @default(now())
+  aanvragen  Aanvraag[]
+}
+
+model Historiek {
+  id          String   @id @default(cuid())
+  aanvraagId  String
+  aanvraag    Aanvraag @relation(fields: [aanvraagId], references: [id])
+  tijdstip    DateTime @default(now())
+  door        String // e-mailadres van de beheerder, of "aanvrager"/"systeem"
+  veld        String
+  oudeWaarde  String?
+  nieuweWaarde String?
+
+  @@index([aanvraagId])
+}
+
+model Mail {
+  id          String     @id @default(cuid())
+  aanvraagId  String?
+  aanvraag    Aanvraag?  @relation(fields: [aanvraagId], references: [id])
+  type        MailType
+  aan         String // komma-gescheiden
+  onderwerp   String
+  inhoud      String // HTML
+  status      MailStatus
+  fout        String?
+  pogingen    Int        @default(1)
+  aangemaakt  DateTime   @default(now())
+  verstuurdOp DateTime?
+
+  @@index([aanvraagId])
+}
+
+// Teller voor de volgnummers, één rij per jaar.
+model Teller {
+  jaar    Int @id
+  laatste Int @default(0)
+}
+
+// Inzendingen per (gehasht) IP-adres, voor rate limiting.
+model Inzending {
+  id         String   @id @default(cuid())
+  ipHash     String
+  tijdstip   DateTime @default(now())
+
+  @@index([ipHash, tijdstip])
+}
