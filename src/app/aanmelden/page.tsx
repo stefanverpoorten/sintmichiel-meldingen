@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { config, isBeheerder } from "@/lib/config";
+import { controleerLoginInstellingen } from "@/lib/configCheck";
 
 export default async function Aanmelden({
   searchParams,
@@ -31,9 +32,23 @@ export default async function Aanmelden({
               <br />
               <small>
                 Foutcode: <strong>{String(sp.error).slice(0, 40)}</strong>
-                {sp.error === "Configuration" &&
-                  " – controleer AUTH_SECRET, ENTRA_TENANT_ID, AUTH_MICROSOFT_ENTRA_ID_ID en AUTH_MICROSOFT_ENTRA_ID_SECRET in Vercel."}
               </small>
+              {sp.error === "Configuration" && (() => {
+                const problemen = controleerLoginInstellingen();
+                return problemen.length > 0 ? (
+                  <ul style={{ textAlign: "left", margin: "8px 0 0", paddingLeft: 18, fontSize: ".9rem" }}>
+                    {problemen.map((x) => (
+                      <li key={x}>{x}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p style={{ textAlign: "left", fontSize: ".9rem", margin: "8px 0 0" }}>
+                    De instellingen zijn aanwezig en hebben de juiste vorm. Waarschijnlijk klopt een waarde niet
+                    (bv. secret vervallen of van een andere app). Bekijk de details in Vercel → Logs (zoek op
+                    &quot;[auth][error]&quot;).
+                  </p>
+                );
+              })()}
             </div>
           )}
           <form
