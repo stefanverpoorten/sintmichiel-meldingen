@@ -116,6 +116,7 @@ Je stelt ze in via Vercel → je project → **Settings → Environment Variable
 | `APP_URL` | aanbevolen | Het webadres van de app. Dit wordt gebruikt voor de link in de mails. | `https://sintmichiel-meldingen.vercel.app` |
 | `RATE_LIMIT_MAX` | nee | Maximum aantal aanvragen per IP-adres binnen de tijdspanne. Standaard 5. | `5` |
 | `RATE_LIMIT_WINDOW_MIN` | nee | Die tijdspanne in minuten. Standaard 15. | `15` |
+| `FOTO_OPSLAG` | nee | `database` = foto's altijd in de database bewaren in plaats van in Vercel Blob. Handig als Blob niet werkt. Zonder deze instelling probeert de app eerst Blob en valt ze automatisch terug op de database. | `database` |
 | `IP_HASH_SALT` | nee | Extra geheim om IP-adressen onleesbaar op te slaan. Standaard wordt `AUTH_SECRET` gebruikt. | |
 | `AUTH_DEV_LOGIN` | nee | `true` = testlogin zonder Microsoft. **Werkt nooit op Vercel**, enkel lokaal. | `true` |
 
