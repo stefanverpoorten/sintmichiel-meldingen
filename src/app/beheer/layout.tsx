@@ -4,6 +4,7 @@ import { vereisBeheerder } from "@/lib/toegang";
 import { config } from "@/lib/config";
 import Navigatie from "./Navigatie";
 import { ToastProvider } from "./Toast";
+import VernieuwKnop from "./VernieuwKnop";
 
 export default async function BeheerLayout({ children }: { children: React.ReactNode }) {
   const email = await vereisBeheerder();
@@ -22,6 +23,7 @@ export default async function BeheerLayout({ children }: { children: React.React
           </Link>
           <Navigatie />
           <div className="gebruiker">
+            <VernieuwKnop />
             <span>{email}</span>
             <form
               action={async () => {

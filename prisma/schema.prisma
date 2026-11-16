@@ -64,9 +64,14 @@ model Aanvraag {
   historiek        Historiek[]
   mails            Mail[]
 
-  @@index([controle])
-  @@index([status])
-  @@index([controleDatum])
+  // Indexen voor snelle overzichten, filters en sortering
+  @@index([status, controle, ingediendOp]) // actief overzicht en "Niet uitgevoerd"
+  @@index([controle, controleDatum]) // archief per schooljaar
+  @@index([ingediendOp])
+  @@index([klusjesmanId, status, controle]) // afdruklijst per klusjesman
+  @@index([campus])
+  @@index([soort])
+  @@index([prioriteit])
 }
 
 model Foto {
@@ -79,6 +84,8 @@ model Foto {
   grootte     Int
   volgorde    Int      @default(0)
   aangemaakt  DateTime @default(now())
+
+  @@index([aanvraagId, volgorde])
 }
 
 model Klusjesman {
@@ -87,6 +94,8 @@ model Klusjesman {
   actief     Boolean    @default(true)
   aangemaakt DateTime   @default(now())
   aanvragen  Aanvraag[]
+
+  @@index([actief, naam])
 }
 
 model Historiek {
@@ -99,7 +108,7 @@ model Historiek {
   oudeWaarde  String?
   nieuweWaarde String?
 
-  @@index([aanvraagId])
+  @@index([aanvraagId, tijdstip])
 }
 
 model Mail {
@@ -116,7 +125,9 @@ model Mail {
   aangemaakt  DateTime   @default(now())
   verstuurdOp DateTime?
 
-  @@index([aanvraagId])
+  @@index([aanvraagId, type, aangemaakt])
+  @@index([aangemaakt])
+  @@index([status, aangemaakt])
 }
 
 // Teller voor de volgnummers, één rij per jaar.
@@ -132,6 +143,7 @@ model Inzending {
   tijdstip   DateTime @default(now())
 
   @@index([ipHash, tijdstip])
+  @@index([tijdstip])
 }
 
 // Reserve-opslag voor foto's wanneer Vercel Blob niet beschikbaar is.

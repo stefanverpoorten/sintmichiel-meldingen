@@ -53,7 +53,7 @@ input:focus, select:focus, textarea:focus, button:focus-visible { outline: 3px s
 .keuzes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .keuze { position: relative; }
 .keuze input { position: absolute; opacity: 0; inset: 0; }
-.keuze span { display: block; text-align: center; padding: 14px; border: 2px solid var(--lijn); border-radius: 8px; font-weight: 600; cursor: pointer; background: var(--wit); }
+.keuze span { display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 14px 8px; border: 2px solid var(--lijn); border-radius: 8px; font-weight: 600; cursor: pointer; background: var(--wit); }
 .keuze input:checked + span { border-color: var(--petrol); background: #e8f1f2; color: var(--petrol); }
 .keuze input:focus-visible + span { outline: 3px solid var(--teal-licht); }
 fieldset { border: 0; padding: 0; margin: 0; }
@@ -172,3 +172,7 @@ dl.gegevens dd { margin: 0; white-space: pre-wrap; }
 
 .knoppen-rij { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .knoppen-rij .knop { min-width: 160px; }
+
+.draait { display: inline-block; animation: draai 0.8s linear infinite; }
+@keyframes draai { to { transform: rotate(360deg); } }
+.bijgewerkt { font-weight: 400; color: var(--grijs); font-size: .78rem; }

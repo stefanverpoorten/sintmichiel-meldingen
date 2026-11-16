@@ -7,7 +7,9 @@ import { verstuurMail, verstuurOpnieuw } from "@/lib/mail";
 import { mailStatusG, mailStatusNG } from "@/lib/mailTeksten";
 import { fotoBijlagen } from "@/lib/fotoBijlagen";
 
-export type Resultaat = { ok: true; melding?: string } | { ok: false; fout: string };
+export type Resultaat =
+  | { ok: true; melding?: string; waarschuwing?: string }
+  | { ok: false; fout: string };
 
 async function beheerder(): Promise<string> {
   const email = await huidigeBeheerder();
@@ -64,13 +66,10 @@ export async function wijzigStatus(id: string, nieuw: "" | "G" | "NG", reden?: s
       });
       if (mail.status === "MISLUKT")
         return {
-          ok: false,
-          fout: `De status werd opgeslagen, maar de mail kon niet verstuurd worden: ${mail.fout}`,
+          ok: true,
+          waarschuwing: `De status werd opgeslagen, maar de mail aan de aanvrager kon niet verstuurd worden: ${mail.fout}`,
         };
-      return {
-        ok: true,
-        melding: mail.status === "TEST" ? "Opgeslagen (testmodus: mail enkel gelogd)" : "Opgeslagen en mail verstuurd",
-      };
+      return { ok: true };
     }
     return { ok: true };
   });
@@ -115,8 +114,7 @@ export async function wijzigControle(id: string, waarde: "" | "OK" | "NOK") {
     const controleDatum = nieuw === "OK" ? new Date() : null;
     await prisma.aanvraag.update({ where: { id }, data: { controle: nieuw, controleDatum } });
     await historiek(id, door, "Controle", a.controle, nieuw);
-    if (nieuw === "OK") return { ok: true, melding: "Gecontroleerd: de aanvraag staat nu in het archief." };
-    if (a.controle === "OK") return { ok: true, melding: "Teruggezet naar het actieve overzicht." };
+    if (a.controle === "OK" && nieuw !== "OK") return { ok: true, melding: "Teruggezet naar het actieve overzicht." };
     return { ok: true };
   });
 }

@@ -14,18 +14,17 @@ import {
 import { useToast } from "./Toast";
 import type { KlusjesmanOptie, MailInfo } from "@/lib/overzicht";
 
+/** Voor knoppen (bv. "Opnieuw versturen"): toont het resultaat. */
 function useActie() {
   const [bezig, start] = useTransition();
   const toast = useToast();
   const router = useRouter();
-  const [opgeslagen, setOpgeslagen] = useState(false);
   function voerUit(fn: () => Promise<Resultaat>, bijSucces?: () => void) {
     start(async () => {
       const r = await fn();
       if (r.ok) {
         if (r.melding) toast(r.melding);
-        setOpgeslagen(true);
-        setTimeout(() => setOpgeslagen(false), 2000);
+        if (r.waarschuwing) toast(r.waarschuwing, true);
         bijSucces?.();
       } else {
         toast(r.fout, true);
@@ -33,11 +32,39 @@ function useActie() {
       router.refresh();
     });
   }
-  return { bezig, voerUit, opgeslagen };
+  return { bezig, voerUit };
 }
 
-function Opgeslagen({ zichtbaar }: { zichtbaar: boolean }) {
-  return zichtbaar ? <span className="opgeslagen">✓ opgeslagen</span> : null;
+/**
+ * Voor de beheervelden: de nieuwe waarde verschijnt meteen, het opslaan gebeurt op de achtergrond.
+ * Er verschijnt enkel een melding als er iets misloopt (dan wordt de oude waarde teruggezet).
+ */
+function useAchtergrond<T>(serverWaarde: T) {
+  const [waarde, setWaarde] = useState(serverWaarde);
+  useEffect(() => setWaarde(serverWaarde), [serverWaarde]);
+  const [, start] = useTransition();
+  const toast = useToast();
+  const router = useRouter();
+  function sla(nieuw: T, fn: () => Promise<Resultaat>) {
+    const vorige = waarde;
+    setWaarde(nieuw);
+    start(async () => {
+      let r: Resultaat;
+      try {
+        r = await fn();
+      } catch {
+        r = { ok: false, fout: "Opslaan mislukt: geen verbinding met de server." };
+      }
+      if (!r.ok) {
+        setWaarde(vorige);
+        toast(r.fout, true);
+      } else if (r.waarschuwing) {
+        toast(r.waarschuwing, true);
+      }
+      router.refresh();
+    });
+  }
+  return { waarde, sla };
 }
 
 export function Modal({ titel, children, sluit }: { titel: string; children: React.ReactNode; sluit: () => void }) {
@@ -57,7 +84,7 @@ export function Modal({ titel, children, sluit }: { titel: string; children: Rea
 }
 
 export function StatusVeld({ id, status, volgnummer }: { id: string; status: "G" | "NG" | null; volgnummer: string }) {
-  const { bezig, voerUit, opgeslagen } = useActie();
+  const { waarde, sla } = useAchtergrond<"G" | "NG" | null>(status);
   const [ngOpen, setNgOpen] = useState(false);
   const [reden, setReden] = useState("");
 
@@ -67,25 +94,21 @@ export function StatusVeld({ id, status, volgnummer }: { id: string; status: "G"
       setNgOpen(true);
       return;
     }
-    if (w === "G" && !confirm(`Status van ${volgnummer} op G zetten?\nDe aanvrager krijgt een mail dat de aanvraag werd doorgegeven aan de technische dienst.`))
-      return;
-    voerUit(() => wijzigStatus(id, w as "" | "G"));
+    sla(w === "G" ? "G" : null, () => wijzigStatus(id, w as "" | "G"));
   }
 
   return (
     <>
       <select
         aria-label="Status"
-        value={status ?? ""}
-        disabled={bezig}
+        value={waarde ?? ""}
         onChange={(e) => kies(e.target.value)}
-        className={status ? `status-${status}` : ""}
+        className={waarde ? `status-${waarde}` : ""}
       >
         <option value="">–</option>
         <option value="G">G</option>
         <option value="NG">NG</option>
       </select>
-      <Opgeslagen zichtbaar={opgeslagen} />
       {ngOpen && (
         <Modal titel={`Aanvraag ${volgnummer} niet goedkeuren`} sluit={() => setNgOpen(false)}>
           <p>
@@ -103,10 +126,13 @@ export function StatusVeld({ id, status, volgnummer }: { id: string; status: "G"
             <button
               className="knop gevaar"
               type="button"
-              disabled={!reden.trim() || bezig}
-              onClick={() => voerUit(() => wijzigStatus(id, "NG", reden), () => setNgOpen(false))}
+              disabled={!reden.trim()}
+              onClick={() => {
+                setNgOpen(false);
+                sla("NG", () => wijzigStatus(id, "NG", reden));
+              }}
             >
-              {bezig ? "Bezig…" : "Bevestigen en mail versturen"}
+              Bevestigen en mail versturen
             </button>
           </div>
         </Modal>
@@ -116,22 +142,21 @@ export function StatusVeld({ id, status, volgnummer }: { id: string; status: "G"
 }
 
 export function PrioriteitVeld({ id, prioriteit }: { id: string; prioriteit: number | null }) {
-  const { bezig, voerUit, opgeslagen } = useActie();
+  const { waarde, sla } = useAchtergrond(prioriteit?.toString() ?? "");
   return (
-    <>
-      <select
-        aria-label="Prioriteit"
-        value={prioriteit?.toString() ?? ""}
-        disabled={bezig}
-        onChange={(e) => voerUit(() => wijzigPrioriteit(id, e.target.value))}
-      >
-        <option value="">–</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-      </select>
-      <Opgeslagen zichtbaar={opgeslagen} />
-    </>
+    <select
+      aria-label="Prioriteit"
+      value={waarde}
+      onChange={(e) => {
+        const w = e.target.value;
+        sla(w, () => wijzigPrioriteit(id, w));
+      }}
+    >
+      <option value="">–</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
   );
 }
 
@@ -144,72 +169,63 @@ export function KlusjesmanVeld({
   klusjesmanId: string | null;
   opties: KlusjesmanOptie[];
 }) {
-  const { bezig, voerUit, opgeslagen } = useActie();
-  const zichtbaar = opties.filter((o) => o.actief || o.id === klusjesmanId);
+  const { waarde, sla } = useAchtergrond(klusjesmanId ?? "");
+  const zichtbaar = opties.filter((o) => o.actief || o.id === klusjesmanId || o.id === waarde);
   return (
-    <>
-      <select
-        aria-label="Toegewezen aan"
-        value={klusjesmanId ?? ""}
-        disabled={bezig}
-        onChange={(e) => voerUit(() => wijzigKlusjesman(id, e.target.value))}
-      >
-        <option value="">– niemand –</option>
-        {zichtbaar.map((o) => (
-          <option key={o.id} value={o.id} disabled={!o.actief}>
-            {o.naam}
-            {!o.actief ? " (inactief)" : ""}
-          </option>
-        ))}
-      </select>
-      <Opgeslagen zichtbaar={opgeslagen} />
-    </>
+    <select
+      aria-label="Toegewezen aan"
+      value={waarde}
+      onChange={(e) => {
+        const w = e.target.value;
+        sla(w, () => wijzigKlusjesman(id, w));
+      }}
+    >
+      <option value="">– niemand –</option>
+      {zichtbaar.map((o) => (
+        <option key={o.id} value={o.id} disabled={!o.actief}>
+          {o.naam}
+          {!o.actief ? " (inactief)" : ""}
+        </option>
+      ))}
+    </select>
   );
 }
 
 export function ControleVeld({ id, controle, volgnummer }: { id: string; controle: "OK" | "NOK" | null; volgnummer: string }) {
-  const { bezig, voerUit, opgeslagen } = useActie();
+  const { waarde, sla } = useAchtergrond<"" | "OK" | "NOK">(controle ?? "");
   return (
-    <>
-      <select
-        aria-label="Controle"
-        value={controle ?? ""}
-        disabled={bezig}
-        onChange={(e) => {
-          const w = e.target.value as "" | "OK" | "NOK";
-          if (w === "OK" && !confirm(`Aanvraag ${volgnummer} als gecontroleerd (OK) markeren?\nDe aanvraag verhuist naar het archief.`))
-            return;
-          voerUit(() => wijzigControle(id, w));
-        }}
-      >
-        <option value="">–</option>
-        <option value="OK">OK</option>
-        <option value="NOK">NOK</option>
-      </select>
-      <Opgeslagen zichtbaar={opgeslagen} />
-    </>
+    <select
+      aria-label="Controle"
+      value={waarde}
+      onChange={(e) => {
+        const w = e.target.value as "" | "OK" | "NOK";
+        if (w === "OK" && !confirm(`Aanvraag ${volgnummer} als gecontroleerd (OK) markeren?\nDe aanvraag verhuist naar het archief.`))
+          return;
+        sla(w, () => wijzigControle(id, w));
+      }}
+    >
+      <option value="">–</option>
+      <option value="OK">OK</option>
+      <option value="NOK">NOK</option>
+    </select>
   );
 }
 
 export function OpmerkingVeld({ id, waarde, rijen = 2 }: { id: string; waarde: string | null; rijen?: number }) {
-  const { bezig, voerUit, opgeslagen } = useActie();
+  const { sla } = useAchtergrond(waarde ?? "");
   const [tekst, setTekst] = useState(waarde ?? "");
   useEffect(() => setTekst(waarde ?? ""), [waarde]);
   return (
-    <>
-      <textarea
-        aria-label="Interne opmerking"
-        rows={rijen}
-        value={tekst}
-        disabled={bezig}
-        placeholder="Interne opmerking…"
-        onChange={(e) => setTekst(e.target.value)}
-        onBlur={() => {
-          if (tekst.trim() !== (waarde ?? "").trim()) voerUit(() => wijzigOpmerking(id, tekst));
-        }}
-      />
-      <Opgeslagen zichtbaar={opgeslagen} />
-    </>
+    <textarea
+      aria-label="Interne opmerking"
+      rows={rijen}
+      value={tekst}
+      placeholder="Interne opmerking…"
+      onChange={(e) => setTekst(e.target.value)}
+      onBlur={() => {
+        if (tekst.trim() !== (waarde ?? "").trim()) sla(tekst, () => wijzigOpmerking(id, tekst));
+      }}
+    />
   );
 }
 

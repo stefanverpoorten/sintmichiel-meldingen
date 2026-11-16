@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isToegelaten, MAX_BYTES, verkleinFoto } from "./fotoVerkleinen";
 
 type Foto = { id: string; bestand: File; voorbeeld: string };
@@ -13,6 +13,15 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
   const [gesloten, setGesloten] = useState(false);
   const [waarschuwing, setWaarschuwing] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Komt de pagina uit de browsercache (bv. via de terugknop), dan opnieuw laden zodat alles leeg en actueel is.
+  useEffect(() => {
+    const opnieuw = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload();
+    };
+    window.addEventListener("pageshow", opnieuw);
+    return () => window.removeEventListener("pageshow", opnieuw);
+  }, []);
   const fotoInput = useRef<HTMLInputElement>(null);
 
   async function fotosGekozen(e: React.ChangeEvent<HTMLInputElement>) {
@@ -189,15 +198,17 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
         </div>
       </fieldset>
 
-      <div className="veld">
-        <label htmlFor="campus">Campus <span className="verplicht">*</span></label>
-        <select id="campus" name="campus" required defaultValue="">
-          <option value="" disabled>Kies een campus…</option>
+      <fieldset className="veld">
+        <legend>Campus <span className="verplicht">*</span></legend>
+        <div className="keuzes">
           {campussen.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <label className="keuze" key={c}>
+              <input type="radio" name="campus" value={c} required />
+              <span>{c}</span>
+            </label>
           ))}
-        </select>
-      </div>
+        </div>
+      </fieldset>
 
       <div className="veld">
         <label htmlFor="locatie">Locatie / lokaalnummer <span className="verplicht">*</span></label>
