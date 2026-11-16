@@ -42,7 +42,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         user.email ??
         ""
       ).toLowerCase();
-      if (!isBeheerder(email)) return "/aanmelden?fout=geen-toegang";
+      if (!isBeheerder(email)) {
+        console.warn(`Aanmelden geweigerd voor "${email}": niet in ADMIN_EMAILS (${config.beheerders.length} adres(sen) ingesteld).`);
+        return `/aanmelden?fout=geen-toegang&als=${encodeURIComponent(email)}`;
+      }
       user.email = email;
       return true;
     },

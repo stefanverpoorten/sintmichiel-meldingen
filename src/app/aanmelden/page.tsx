@@ -6,7 +6,7 @@ import { controleerLoginInstellingen } from "@/lib/configCheck";
 export default async function Aanmelden({
   searchParams,
 }: {
-  searchParams: Promise<{ fout?: string; error?: string }>;
+  searchParams: Promise<{ fout?: string; error?: string; als?: string }>;
 }) {
   const sessie = await auth();
   if (isBeheerder(sessie?.user?.email)) redirect("/beheer");
@@ -23,7 +23,25 @@ export default async function Aanmelden({
           <p className="intro">Enkel voor de directie en de beheerder.</p>
           {geenToegang && (
             <div className="melding fout">
-              Je account heeft geen toegang tot het beheer. Vraag de beheerder om je toe te voegen.
+              Je account heeft geen toegang tot het beheer.
+              {sp.als && (
+                <>
+                  <br />
+                  <small>
+                    Microsoft meldde je aan als <strong>{String(sp.als).slice(0, 120)}</strong>. Dat adres staat
+                    niet in de lijst ADMIN_EMAILS.
+                  </small>
+                </>
+              )}
+              {config.beheerders.length === 0 && (
+                <>
+                  <br />
+                  <small>
+                    ADMIN_EMAILS is leeg of ontbreekt in Vercel (Settings → Environment Variables, met
+                    Production aangevinkt).
+                  </small>
+                </>
+              )}
             </div>
           )}
           {sp.error && !geenToegang && (
