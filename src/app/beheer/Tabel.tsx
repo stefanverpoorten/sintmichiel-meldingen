@@ -32,6 +32,7 @@ export default function Tabel({
     );
   }
   const actief = weergave === "actief";
+  const archief = weergave === "archief";
   return (
     <div className="tabel-wrap">
       <table className="lijst">
@@ -45,12 +46,12 @@ export default function Tabel({
             <th>Locatie</th>
             <th>Beschrijving</th>
             <th>Foto&apos;s</th>
-            <th>Status</th>
+            {!archief && <th>Status</th>}
             {weergave === "ng" && <th>Reden NG</th>}
-            <th>Mail</th>
+            {!archief && <th>Mail</th>}
             <th>Prio</th>
             <th>Toegewezen aan</th>
-            {weergave !== "ng" && <th>Controle</th>}
+            {actief && <th>Controle</th>}
             {weergave === "archief" && <th>Controledatum</th>}
             <th>Interne opmerking</th>
             <th></th>
@@ -84,23 +85,27 @@ export default function Tabel({
               <td>
                 <Miniaturen fotoIds={r.fotoIds} />
               </td>
-              <td>
-                {actief ? (
-                  <StatusVeld id={r.id} status={r.status} volgnummer={r.volgnummer} />
-                ) : (
-                  <span className={`label ${r.status === "NG" ? "fout" : r.status === "G" ? "ok" : "grijs"}`}>
-                    {r.status ?? "–"}
-                  </span>
-                )}
-              </td>
+              {!archief && (
+                <td>
+                  {actief ? (
+                    <StatusVeld id={r.id} status={r.status} volgnummer={r.volgnummer} />
+                  ) : (
+                    <span className={`label ${r.status === "NG" ? "fout" : r.status === "G" ? "ok" : "grijs"}`}>
+                      {r.status ?? "–"}
+                    </span>
+                  )}
+                </td>
+              )}
               {weergave === "ng" && (
                 <td>
                   <Beschrijving tekst={r.ngReden ?? ""} titel={`Reden NG – ${r.volgnummer}`} max={60} />
                 </td>
               )}
-              <td>
-                <MailVinkje mail={r.statusMail} />
-              </td>
+              {!archief && (
+                <td>
+                  <MailVinkje mail={r.statusMail} />
+                </td>
+              )}
               <td>
                 {actief ? (
                   <PrioriteitVeld id={r.id} prioriteit={r.prioriteit} />
@@ -117,13 +122,9 @@ export default function Tabel({
                   (r.klusjesmanNaam ?? "–")
                 )}
               </td>
-              {weergave !== "ng" && (
+              {actief && (
                 <td>
-                  {actief ? (
-                    <ControleVeld id={r.id} controle={r.controle} volgnummer={r.volgnummer} />
-                  ) : (
-                    <span className="label ok">{r.controle}</span>
-                  )}
+                  <ControleVeld id={r.id} controle={r.controle} volgnummer={r.volgnummer} />
                 </td>
               )}
               {weergave === "archief" && <td className="nowrap">{r.controleDatum}</td>}

@@ -50,7 +50,7 @@ export default function Filterbalk({
           <option value="TAAK">Taak</option>
         </select>
       </label>
-      {weergave !== "ng" && (
+      {weergave === "actief" && (
         <label>
           Status
           <select name="status" defaultValue={filters.status ?? ""}>
