@@ -11,6 +11,7 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
   const [fout, setFout] = useState<string | null>(null);
   const [volgnummer, setVolgnummer] = useState<string | null>(null);
   const [gesloten, setGesloten] = useState(false);
+  const [waarschuwing, setWaarschuwing] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const fotoInput = useRef<HTMLInputElement>(null);
 
@@ -65,8 +66,14 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
       const res = await fetch("/api/aanvragen", { method: "POST", body: data });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.ok) {
-        setFout(json?.fout ?? "Er liep iets mis bij het verzenden. Probeer het opnieuw.");
+        setFout(
+          json?.fout ??
+            (res.status === 413
+              ? "Je foto's zijn te groot om te verzenden. Probeer met minder foto's."
+              : `Er liep iets mis bij het verzenden (foutcode ${res.status}). Probeer het opnieuw.`)
+        );
       } else {
+        setWaarschuwing(json.waarschuwing ?? null);
         setVolgnummer(json.volgnummer);
         window.scrollTo({ top: 0 });
       }
@@ -112,6 +119,7 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
       <div className="kaart bevestiging">
         <div className="vinkje" aria-hidden>✓</div>
         <h1>Bedankt, je aanvraag is ingediend!</h1>
+        {waarschuwing && <div className="melding info">{waarschuwing}</div>}
         <p>Je volgnummer is</p>
         <div className="nummer">{volgnummer}</div>
         <p className="intro">

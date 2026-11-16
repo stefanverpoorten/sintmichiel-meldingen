@@ -37,6 +37,15 @@ function fout(bericht: string, status = 400) {
 }
 
 export async function POST(req: Request) {
+  try {
+    return await verwerk(req);
+  } catch (e) {
+    console.error("[aanvraag] Onverwachte fout:", e);
+    return fout("Er liep iets mis op de server. Probeer het later opnieuw of meld het aan de directie.", 500);
+  }
+}
+
+async function verwerk(req: Request) {
   let form: FormData;
   try {
     form = await req.formData();
@@ -97,20 +106,39 @@ export async function POST(req: Request) {
   // 6. Opslaan.
   const volgnummer = await volgendVolgnummer();
   const fotoData = [];
-  for (const [i, f] of verwerkt.entries()) {
-    const pad = await bewaar(`aanvragen/${volgnummer}/foto-${i + 1}.jpg`, f.groot, "image/jpeg");
-    const miniatuur = await bewaar(`aanvragen/${volgnummer}/mini-${i + 1}.jpg`, f.klein, "image/jpeg");
-    fotoData.push({ pad, miniatuur, bestandsnaam: f.naam, grootte: f.grootte, volgorde: i });
+  let fotoFout: string | null = null;
+  // Lukt het opslaan van de foto's niet, dan wordt de aanvraag toch bewaard (zonder foto's).
+  try {
+    for (const [i, f] of verwerkt.entries()) {
+      const pad = await bewaar(`aanvragen/${volgnummer}/foto-${i + 1}.jpg`, f.groot, "image/jpeg");
+      const miniatuur = await bewaar(`aanvragen/${volgnummer}/mini-${i + 1}.jpg`, f.klein, "image/jpeg");
+      fotoData.push({ pad, miniatuur, bestandsnaam: f.naam, grootte: f.grootte, volgorde: i });
+    }
+  } catch (e) {
+    fotoFout = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+    console.error(`[foto-opslag] Foto's van ${volgnummer} niet opgeslagen:`, e);
+    fotoData.length = 0;
   }
+
+  const historiek: { door: string; veld: string; nieuweWaarde: string }[] = [
+    { door: d.email, veld: "Aanvraag ingediend", nieuweWaarde: volgnummer },
+  ];
+  if (fotoFout)
+    historiek.push({
+      door: "systeem",
+      veld: "Foto's niet opgeslagen",
+      nieuweWaarde: `${verwerkt.length} foto('s) – ${fotoFout}`.slice(0, 500),
+    });
 
   const aanvraag = await prisma.aanvraag.create({
     data: {
       volgnummer,
       ...d,
+      interneOpmerking: fotoFout
+        ? `Let op: de aanvrager voegde ${verwerkt.length} foto('s) toe, maar die konden niet opgeslagen worden.`
+        : undefined,
       fotos: { create: fotoData },
-      historiek: {
-        create: { door: d.email, veld: "Aanvraag ingediend", nieuweWaarde: volgnummer },
-      },
+      historiek: { create: historiek },
     },
   });
 
@@ -136,5 +164,11 @@ export async function POST(req: Request) {
     });
   });
 
-  return NextResponse.json({ ok: true, volgnummer });
+  return NextResponse.json({
+    ok: true,
+    volgnummer,
+    waarschuwing: fotoFout
+      ? "Je aanvraag is goed ontvangen, maar je foto's konden niet bewaard worden. Je hoeft niets opnieuw in te dienen."
+      : undefined,
+  });
 }
