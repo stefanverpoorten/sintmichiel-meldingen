@@ -186,3 +186,7 @@ dl.gegevens dd { margin: 0; white-space: pre-wrap; }
 .prio-1 { background: #fdecea !important; color: #b3261e !important; border-color: #e5948d !important; font-weight: 700; }
 .prio-2 { background: #fff1db !important; color: #a35a00 !important; border-color: #f0b45c !important; font-weight: 700; }
 .prio-3 { background: #e7f5ee !important; color: #1e7a4c !important; border-color: #8fcfaf !important; font-weight: 700; }
+
+.foto-knoppen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.foto-knoppen .foto-knop { flex-direction: column; gap: 4px; text-align: center; padding: 12px 8px; }
+.foto-icoon { font-size: 1.6rem; line-height: 1; }

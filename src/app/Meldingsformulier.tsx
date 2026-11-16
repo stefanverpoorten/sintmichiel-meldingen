@@ -68,7 +68,6 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
       return;
     }
     const data = new FormData(form);
-    data.delete("fotos-kiezen");
     for (const f of fotos) data.append("fotos", f.bestand, f.bestand.name);
     setBezig(true);
     try {
@@ -228,15 +227,33 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
 
       <div className="veld">
         <label>Foto&apos;s (optioneel, max. 3)</label>
-        {fotos.length < 3 && (
-          <label className="foto-knop" htmlFor="fotos-kiezen">
-            📷 {fotoBezig ? "Foto's verwerken…" : "Foto toevoegen"}
-          </label>
-        )}
+        {fotos.length < 3 &&
+          (fotoBezig ? (
+            <div className="foto-knop">⏳ Foto&apos;s verwerken…</div>
+          ) : (
+            <div className="foto-knoppen">
+              <label className="foto-knop" htmlFor="foto-camera">
+                <span className="foto-icoon" aria-hidden>📷</span>
+                Foto nemen
+              </label>
+              <label className="foto-knop" htmlFor="fotos-kiezen">
+                <span className="foto-icoon" aria-hidden>🖼️</span>
+                Uit galerij
+              </label>
+            </div>
+          ))}
+        {/* Opent rechtstreeks de camera (achtercamera) op gsm/tablet; op een computer gewoon een bestandskeuze. */}
+        <input
+          id="foto-camera"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={fotosGekozen}
+        />
         <input
           ref={fotoInput}
           id="fotos-kiezen"
-          name="fotos-kiezen"
           type="file"
           accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif,.jpg,.jpeg,.png"
           multiple
