@@ -4,11 +4,24 @@ import { datumTijd } from "@/lib/datum";
 import { MAIL_TYPE_LABEL } from "@/lib/constanten";
 import { config } from "@/lib/config";
 import { MailStatus, Beschrijving } from "../Velden";
+import MailSjablonen, { type SjabloonRij } from "./MailSjablonen";
+import { SJABLOON_TYPES, STANDAARD } from "@/lib/sjabloon";
 
 export const dynamic = "force-dynamic";
 
 export default async function Mails({ searchParams }: { searchParams: Promise<{ fout?: string }> }) {
   const { fout } = await searchParams;
+  const opgeslagen = await prisma.mailSjabloon.findMany();
+  const sjablonen: SjabloonRij[] = SJABLOON_TYPES.map((type) => {
+    const s = opgeslagen.find((x) => x.type === type);
+    return {
+      type,
+      onderwerp: s?.onderwerp ?? STANDAARD[type].onderwerp,
+      inhoud: s?.inhoud ?? STANDAARD[type].inhoud,
+      aangepast: !!s,
+      gewijzigd: s ? datumTijd(s.gewijzigdOp) : null,
+    };
+  });
   const mails = await prisma.mail.findMany({
     where: fout ? { status: "MISLUKT" } : undefined,
     orderBy: { aangemaakt: "desc" },
@@ -24,6 +37,8 @@ export default async function Mails({ searchParams }: { searchParams: Promise<{ 
           <Link className={`knop ${fout ? "" : "secundair"}`} href="/beheer/mails?fout=1">Enkel mislukte</Link>
         </div>
       </div>
+      <MailSjablonen sjablonen={sjablonen} />
+      <h2>Verstuurde mails</h2>
       <p className="intro">
         Afzender: <strong>{config.afzender || "(MAIL_FROM niet ingesteld)"}</strong> – modus:{" "}
         <strong>{config.mailTestmodus ? "TEST (niets wordt echt verstuurd)" : "LIVE"}</strong>. De laatste 300 mails.

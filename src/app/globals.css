@@ -194,3 +194,21 @@ dl.gegevens dd { margin: 0; white-space: pre-wrap; }
 /* Onzichtbaar maar wel 'aanwezig' (display:none werkt niet in elke Android-browser) */
 .verborgen-invoer { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
 button.foto-knop { font: inherit; width: 100%; }
+
+/* Mailteksten */
+.modal.breed { max-width: 1100px; }
+.sjabloon-knoppen { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.sjabloon-knop { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; font: inherit; padding: 14px; border: 1px solid var(--lijn); border-radius: 8px; background: #fafcfc; cursor: pointer; }
+.sjabloon-knop:hover { border-color: var(--petrol); background: #eef5f6; }
+.sjabloon-knop strong { color: var(--petrol); font-size: 1.02rem; }
+.sjabloon-knop > span:not(.label) { color: var(--grijs); font-size: .85rem; }
+.sjabloon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 860px) { .sjabloon-grid { grid-template-columns: 1fr; } }
+.sjabloon-label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
+.invulvelden { display: flex; flex-wrap: wrap; gap: 6px; }
+.invulveld { font: inherit; font-size: .82rem; font-family: ui-monospace, Consolas, monospace; padding: 4px 8px; border: 1px solid var(--teal-licht); background: #eef7f7; color: var(--petrol); border-radius: 6px; cursor: pointer; display: inline-flex; flex-direction: column; align-items: flex-start; }
+.invulveld span { font-family: "Segoe UI", system-ui, sans-serif; font-size: .72rem; color: var(--grijs); }
+.invulveld:hover { background: #dff0f0; }
+.voorbeeld-onderwerp { background: #f4f6f7; border: 1px solid var(--lijn); border-radius: 6px 6px 0 0; padding: 8px 10px; font-size: .9rem; }
+.voorbeeld-onderwerp span { color: var(--grijs); }
+.voorbeeld-mail { width: 100%; height: 420px; border: 1px solid var(--lijn); border-top: 0; border-radius: 0 0 6px 6px; background: #f4f6f7; }

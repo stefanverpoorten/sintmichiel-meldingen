@@ -153,3 +153,12 @@ model FotoBestand {
   data        Bytes
   aangemaakt  DateTime @default(now())
 }
+
+// Aangepaste mailteksten. Bestaat er geen rij voor een mail, dan wordt de standaardtekst gebruikt.
+model MailSjabloon {
+  type          MailType @id
+  onderwerp     String
+  inhoud        String
+  gewijzigdOp   DateTime @updatedAt
+  gewijzigdDoor String?
+}

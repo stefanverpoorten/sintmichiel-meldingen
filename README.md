@@ -38,7 +38,7 @@ Collega vult formulier in
         │
         ▼
 Nieuwe aanvraag (volgnummer bv. 2026-0001)
-  ├─ mail naar directeur + beheerder (met foto's in bijlage)
+  ├─ mail naar directeur + beheerder (met link naar de aanvraag)
   └─ ontvangstbevestiging naar de aanvrager
         │
         ▼
@@ -92,7 +92,22 @@ ACTIEF OVERZICHT
 
 ### Mails
 
-Dit is een logboek van alle verstuurde en mislukte mails, met een knop **Opnieuw versturen** bij elke mislukte mail.
+**Mailteksten aanpassen.** Bovenaan staan vier knoppen, één per soort mail:
+- Nieuwe aanvraag
+- Ontvangstbevestiging
+- Goedgekeurd (G)
+- Niet goedgekeurd (NG)
+
+Klik op een knop. In het popupvenster pas je het **onderwerp** en de **inhoud** aan, en rechts zie je meteen een voorbeeld.
+- **Invulvelden** zoals `{naam}`, `{volgnummer}`, `{soort}`, `{campus}` en `{locatie}` worden automatisch ingevuld. Klik op een invulveld om het in te voegen.
+- `{knop}` (alleen bij "Nieuwe aanvraag") wordt de knop "Open de aanvraag in het overzicht".
+- `{reden}` is verplicht in de mail bij NG.
+- Een lege regel begint een nieuwe alinea. Zet tekst tussen `**dubbele sterretjes**` om hem vet te maken.
+- Met **Standaardtekst herstellen** zet je de oorspronkelijke tekst terug.
+
+Een gewijzigde tekst geldt voor alle mails die daarna verstuurd worden.
+
+**Logboek.** Daaronder staat een logboek van alle verstuurde en mislukte mails, met een knop **Opnieuw versturen** bij elke mislukte mail.
 
 ---
 

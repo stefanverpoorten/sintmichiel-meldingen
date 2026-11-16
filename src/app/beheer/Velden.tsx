@@ -67,7 +67,17 @@ function useAchtergrond<T>(serverWaarde: T) {
   return { waarde, sla };
 }
 
-export function Modal({ titel, children, sluit }: { titel: string; children: React.ReactNode; sluit: () => void }) {
+export function Modal({
+  titel,
+  children,
+  sluit,
+  breed,
+}: {
+  titel: string;
+  children: React.ReactNode;
+  sluit: () => void;
+  breed?: boolean;
+}) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === "Escape" && sluit();
     window.addEventListener("keydown", k);
@@ -75,7 +85,7 @@ export function Modal({ titel, children, sluit }: { titel: string; children: Rea
   }, [sluit]);
   return (
     <div className="modal-achter" onClick={sluit}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={titel} onClick={(e) => e.stopPropagation()}>
+      <div className={`modal${breed ? " breed" : ""}`} role="dialog" aria-modal="true" aria-label={titel} onClick={(e) => e.stopPropagation()}>
         <h2>{titel}</h2>
         {children}
       </div>

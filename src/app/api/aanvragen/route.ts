@@ -11,7 +11,6 @@ import { volgendVolgnummer } from "@/lib/volgnummer";
 import { verstuurMail } from "@/lib/mail";
 import { mailNieuweAanvraag, mailOntvangst } from "@/lib/mailTeksten";
 import { config } from "@/lib/config";
-import { fotoBijlagen } from "@/lib/fotoBijlagen";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -144,17 +143,15 @@ async function verwerk(req: Request) {
 
   // 7. Mails na het antwoord versturen, zodat de aanvrager niet hoeft te wachten.
   after(async () => {
-    const bijlagen = fotoData.length ? await fotoBijlagen(aanvraag.id) : [];
-    const nieuw = mailNieuweAanvraag(aanvraag, fotoData.length, bijlagen !== null);
+    const nieuw = await mailNieuweAanvraag(aanvraag);
     await verstuurMail({
       aanvraagId: aanvraag.id,
       type: "NIEUWE_AANVRAAG",
       aan: config.meldingOntvangers,
       onderwerp: nieuw.onderwerp,
       html: nieuw.html,
-      bijlagen: bijlagen ?? [],
     });
-    const ontvangst = mailOntvangst(aanvraag);
+    const ontvangst = await mailOntvangst(aanvraag);
     await verstuurMail({
       aanvraagId: aanvraag.id,
       type: "ONTVANGST",

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { huidigeBeheerder } from "@/lib/toegang";
 import { verstuurMail, verstuurOpnieuw } from "@/lib/mail";
 import { mailStatusG, mailStatusNG } from "@/lib/mailTeksten";
-import { fotoBijlagen } from "@/lib/fotoBijlagen";
+import { onbekendeVelden, SJABLOON_TYPES, type SjabloonType } from "@/lib/sjabloon";
 
 export type Resultaat =
   | { ok: true; melding?: string; waarschuwing?: string }
@@ -56,7 +56,7 @@ export async function wijzigStatus(id: string, nieuw: "" | "G" | "NG", reden?: s
     if (nieuweStatus === "NG") await historiek(id, door, "Reden NG", a.ngReden, r);
 
     if (nieuweStatus === "G" || nieuweStatus === "NG") {
-      const m = nieuweStatus === "G" ? mailStatusG(bijgewerkt) : mailStatusNG(bijgewerkt, r);
+      const m = nieuweStatus === "G" ? await mailStatusG(bijgewerkt) : await mailStatusNG(bijgewerkt, r);
       const mail = await verstuurMail({
         aanvraagId: id,
         type: nieuweStatus === "G" ? "STATUS_G" : "STATUS_NG",
@@ -146,9 +146,7 @@ export async function verstuurMailOpnieuw(mailId: string) {
     await beheerder();
     const mail = await prisma.mail.findUnique({ where: { id: mailId } });
     if (!mail) return { ok: false, fout: "Mail niet gevonden." };
-    const bijlagen =
-      mail.type === "NIEUWE_AANVRAAG" && mail.aanvraagId ? ((await fotoBijlagen(mail.aanvraagId)) ?? []) : [];
-    const r = await verstuurOpnieuw(mailId, bijlagen);
+    const r = await verstuurOpnieuw(mailId);
     if (r.status === "MISLUKT") return { ok: false, fout: `Versturen mislukt: ${r.fout}` };
     return { ok: true, melding: r.status === "TEST" ? "Gelogd (testmodus)" : "Mail verstuurd" };
   });
@@ -181,5 +179,42 @@ export async function klusjesmanActief(id: string, actief: boolean) {
     await beheerder();
     await prisma.klusjesman.update({ where: { id }, data: { actief } });
     return { ok: true, melding: actief ? "Opnieuw actief" : "Op inactief gezet" };
+  });
+}
+
+// ---- Mailteksten ----
+
+export async function bewaarMailSjabloon(type: SjabloonType, onderwerp: string, inhoud: string) {
+  return veilig(async () => {
+    const door = await beheerder();
+    if (!SJABLOON_TYPES.includes(type)) return { ok: false, fout: "Onbekende mail." };
+    const o = onderwerp.trim();
+    const i = inhoud.replace(/\r\n/g, "\n").trim();
+    if (!o) return { ok: false, fout: "Vul een onderwerp in." };
+    if (!i) return { ok: false, fout: "Vul een inhoud in." };
+    if (o.length > 250) return { ok: false, fout: "Het onderwerp is te lang (max. 250 tekens)." };
+    if (i.length > 5000) return { ok: false, fout: "De inhoud is te lang (max. 5000 tekens)." };
+    const onbekend = onbekendeVelden(type, `${o}\n${i}`);
+    if (onbekend.length)
+      return {
+        ok: false,
+        fout: `Onbekend invulveld: ${onbekend.join(", ")}. Gebruik enkel de invulvelden uit de lijst.`,
+      };
+    if (type === "STATUS_NG" && !i.includes("{reden}"))
+      return { ok: false, fout: "De mail bij NG moet het invulveld {reden} bevatten." };
+    await prisma.mailSjabloon.upsert({
+      where: { type },
+      create: { type, onderwerp: o, inhoud: i, gewijzigdDoor: door },
+      update: { onderwerp: o, inhoud: i, gewijzigdDoor: door },
+    });
+    return { ok: true, melding: "Mailtekst opgeslagen" };
+  });
+}
+
+export async function herstelMailSjabloon(type: SjabloonType) {
+  return veilig(async () => {
+    await beheerder();
+    await prisma.mailSjabloon.deleteMany({ where: { type } });
+    return { ok: true, melding: "Standaardtekst hersteld" };
   });
 }
