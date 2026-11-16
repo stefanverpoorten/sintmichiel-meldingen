@@ -133,3 +133,11 @@ model Inzending {
 
   @@index([ipHash, tijdstip])
 }
+
+// Reserve-opslag voor foto's wanneer Vercel Blob niet beschikbaar is.
+model FotoBestand {
+  id          String   @id @default(cuid())
+  contentType String
+  data        Bytes
+  aangemaakt  DateTime @default(now())
+}

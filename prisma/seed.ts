@@ -52,6 +52,7 @@ async function main() {
   await prisma.historiek.deleteMany();
   await prisma.mail.deleteMany();
   await prisma.foto.deleteMany();
+  await prisma.fotoBestand.deleteMany();
   await prisma.aanvraag.deleteMany();
   await prisma.klusjesman.deleteMany();
   await prisma.teller.deleteMany();
