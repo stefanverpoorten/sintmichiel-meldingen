@@ -26,7 +26,15 @@ export default async function Aanmelden({
             </div>
           )}
           {sp.error && !geenToegang && (
-            <div className="melding fout">Aanmelden is mislukt. Probeer het opnieuw.</div>
+            <div className="melding fout">
+              Aanmelden is mislukt. Probeer het opnieuw.
+              <br />
+              <small>
+                Foutcode: <strong>{String(sp.error).slice(0, 40)}</strong>
+                {sp.error === "Configuration" &&
+                  " – controleer AUTH_SECRET, ENTRA_TENANT_ID, AUTH_MICROSOFT_ENTRA_ID_ID en AUTH_MICROSOFT_ENTRA_ID_SECRET in Vercel."}
+              </small>
+            </div>
           )}
           <form
             action={async () => {
