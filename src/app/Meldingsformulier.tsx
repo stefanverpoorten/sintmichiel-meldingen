@@ -23,6 +23,32 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
     return () => window.removeEventListener("pageshow", opnieuw);
   }, []);
   const fotoInput = useRef<HTMLInputElement>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const [cameraHint, setCameraHint] = useState(false);
+  const [ingebouwdeBrowser, setIngebouwdeBrowser] = useState(false);
+
+  // Herken de ingebouwde browser van andere apps (Android WebView, Facebook, Instagram…).
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    setIngebouwdeBrowser(/; wv\)|FBAN|FBAV|Instagram|Line\//i.test(ua));
+  }, []);
+
+  // Opent de camera. Gaat er na 2,5 s niets open (pagina blijft actief), dan tonen we uitleg.
+  function openCamera() {
+    setCameraHint(false);
+    let geopend = false;
+    const weg = () => {
+      geopend = true;
+    };
+    window.addEventListener("blur", weg, { once: true });
+    document.addEventListener("visibilitychange", weg, { once: true });
+    cameraInput.current?.click();
+    setTimeout(() => {
+      window.removeEventListener("blur", weg);
+      document.removeEventListener("visibilitychange", weg);
+      if (!geopend) setCameraHint(true);
+    }, 2500);
+  }
 
   async function fotosGekozen(e: React.ChangeEvent<HTMLInputElement>) {
     const gekozen = Array.from(e.target.files ?? []);
@@ -232,32 +258,50 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
             <div className="foto-knop">⏳ Foto&apos;s verwerken…</div>
           ) : (
             <div className="foto-knoppen">
-              <label className="foto-knop" htmlFor="foto-camera">
+              <button type="button" className="foto-knop" onClick={openCamera}>
                 <span className="foto-icoon" aria-hidden>📷</span>
                 Foto nemen
-              </label>
-              <label className="foto-knop" htmlFor="fotos-kiezen">
+              </button>
+              <button type="button" className="foto-knop" onClick={() => fotoInput.current?.click()}>
                 <span className="foto-icoon" aria-hidden>🖼️</span>
                 Uit galerij
-              </label>
+              </button>
             </div>
           ))}
+        {(cameraHint || ingebouwdeBrowser) && fotos.length < 3 && (
+          <div className="melding info" style={{ marginTop: 10, marginBottom: 0 }}>
+            {cameraHint ? <strong>De camera ging niet open. </strong> : null}
+            {ingebouwdeBrowser
+              ? "Je opende deze pagina vanuit een andere app (bv. Smartschool, Outlook of Teams). Die blokkeert vaak de camera. "
+              : "Dat gebeurt vaak als je de link opent vanuit een andere app (bv. Smartschool, Outlook of Teams). "}
+            Open de link in <strong>Chrome</strong> (menu ⋮ → &quot;Openen in Chrome&quot;), of tik op{" "}
+            <strong>Uit galerij</strong> en kies daar <strong>Camera</strong>.
+          </div>
+        )}
         {/* Opent rechtstreeks de camera (achtercamera) op gsm/tablet; op een computer gewoon een bestandskeuze. */}
         <input
+          ref={cameraInput}
           id="foto-camera"
+          className="verborgen-invoer"
           type="file"
           accept="image/*"
           capture="environment"
-          hidden
-          onChange={fotosGekozen}
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(e) => {
+            setCameraHint(false);
+            fotosGekozen(e);
+          }}
         />
         <input
           ref={fotoInput}
           id="fotos-kiezen"
+          className="verborgen-invoer"
           type="file"
-          accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif,.jpg,.jpeg,.png"
+          accept="image/*,.heic,.heif"
           multiple
-          hidden
+          tabIndex={-1}
+          aria-hidden="true"
           onChange={fotosGekozen}
         />
         <div className="hulp">jpg, png of heic – max. 10 MB per foto. Foto&apos;s worden automatisch verkleind.</div>

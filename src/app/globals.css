@@ -190,3 +190,7 @@ dl.gegevens dd { margin: 0; white-space: pre-wrap; }
 .foto-knoppen { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .foto-knoppen .foto-knop { flex-direction: column; gap: 4px; text-align: center; padding: 12px 8px; }
 .foto-icoon { font-size: 1.6rem; line-height: 1; }
+
+/* Onzichtbaar maar wel 'aanwezig' (display:none werkt niet in elke Android-browser) */
+.verborgen-invoer { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+button.foto-knop { font: inherit; width: 100%; }

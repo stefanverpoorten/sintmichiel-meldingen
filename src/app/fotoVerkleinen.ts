@@ -5,8 +5,9 @@ export const MAX_BYTES = 10 * 1024 * 1024;
 export function isToegelaten(f: File): boolean {
   const naam = f.name.toLowerCase();
   return (
-    ["image/jpeg", "image/png", "image/heic", "image/heif"].includes(f.type) ||
-    /\.(jpe?g|png|heic|heif)$/.test(naam)
+    // Elke foto die de browser kan lezen (jpg, png, heic, webp…); ze wordt hierna omgezet naar jpg.
+    f.type.startsWith("image/") ||
+    /\.(jpe?g|png|heic|heif|webp)$/.test(naam)
   );
 }
 
