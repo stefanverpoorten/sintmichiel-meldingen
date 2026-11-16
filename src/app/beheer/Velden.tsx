@@ -146,6 +146,7 @@ export function PrioriteitVeld({ id, prioriteit }: { id: string; prioriteit: num
   return (
     <select
       aria-label="Prioriteit"
+      className={waarde ? `prio-${waarde}` : ""}
       value={waarde}
       onChange={(e) => {
         const w = e.target.value;
@@ -226,6 +227,30 @@ export function OpmerkingVeld({ id, waarde, rijen = 2 }: { id: string; waarde: s
         if (tekst.trim() !== (waarde ?? "").trim()) sla(tekst, () => wijzigOpmerking(id, tekst));
       }}
     />
+  );
+}
+
+/** Compacte weergave voor het overzicht: enkel een vinkje als de mail verstuurd is. */
+export function MailVinkje({ mail }: { mail: MailInfo | null }) {
+  const { bezig, voerUit } = useActie();
+  if (!mail) return null;
+  if (mail.status === "MISLUKT")
+    return (
+      <button
+        type="button"
+        className="mail-fout"
+        disabled={bezig}
+        title={`Mail mislukt: ${mail.fout ?? ""}\nKlik om opnieuw te versturen.`}
+        aria-label="Mail mislukt – opnieuw versturen"
+        onClick={() => voerUit(() => verstuurMailOpnieuw(mail.id))}
+      >
+        {bezig ? "…" : "✗"}
+      </button>
+    );
+  return (
+    <span className="mail-ok" title={`Verstuurd op ${mail.tijd}${mail.status === "TEST" ? " (testmodus)" : ""}`} aria-label="Mail verstuurd">
+      ✓
+    </span>
   );
 }
 

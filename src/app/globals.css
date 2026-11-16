@@ -176,3 +176,13 @@ dl.gegevens dd { margin: 0; white-space: pre-wrap; }
 .draait { display: inline-block; animation: draai 0.8s linear infinite; }
 @keyframes draai { to { transform: rotate(360deg); } }
 .bijgewerkt { font-weight: 400; color: var(--grijs); font-size: .78rem; }
+
+/* Compacter overzicht */
+.tijd { color: var(--grijs); font-size: .8rem; }
+.naam-met-mail { cursor: help; border-bottom: 1px dotted #b9c5c8; }
+.mail-ok { color: var(--succes); font-size: 1.25rem; font-weight: 700; cursor: default; }
+.mail-fout { color: var(--fout); background: #fdecea; border: 1px solid #f5c2bd; border-radius: 50%; width: 28px; height: 28px; font-weight: 700; cursor: pointer; }
+/* Prioriteit: 1 rood, 2 oranje, 3 groen */
+.prio-1 { background: #fdecea !important; color: #b3261e !important; border-color: #e5948d !important; font-weight: 700; }
+.prio-2 { background: #fff1db !important; color: #a35a00 !important; border-color: #f0b45c !important; font-weight: 700; }
+.prio-3 { background: #e7f5ee !important; color: #1e7a4c !important; border-color: #8fcfaf !important; font-weight: 700; }

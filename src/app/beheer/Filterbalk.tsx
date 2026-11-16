@@ -1,5 +1,6 @@
 // Filters werken via de adresbalk, zodat je een gefilterd overzicht kan bladwijzeren.
 import { CAMPUSSEN } from "@/lib/constanten";
+import { huidigSchooljaar } from "@/lib/datum";
 import type { Filters, Weergave } from "@/lib/filters";
 import type { KlusjesmanOptie } from "@/lib/overzicht";
 
@@ -21,7 +22,9 @@ export default function Filterbalk({
           Schooljaar
           <select name="schooljaar" defaultValue={filters.schooljaar ?? ""}>
             {schooljaren.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>
+                {s} (01/09/{s.slice(0, 4)} – 31/08/{s.slice(5)}){s === huidigSchooljaar() ? " – huidig" : ""}
+              </option>
             ))}
           </select>
         </label>

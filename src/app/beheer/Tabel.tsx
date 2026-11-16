@@ -7,7 +7,7 @@ import {
   Beschrijving,
   ControleVeld,
   KlusjesmanVeld,
-  MailStatus,
+  MailVinkje,
   Miniaturen,
   OpmerkingVeld,
   PrioriteitVeld,
@@ -62,10 +62,14 @@ export default function Tabel({
               <td className="nr">
                 <Link href={`/beheer/aanvraag/${r.id}`}>{r.volgnummer}</Link>
               </td>
-              <td className="nowrap">{r.ingediendOp}</td>
+              <td className="nowrap">
+                {r.ingediendOp.split(" ")[0]}
+                <div className="tijd">{r.ingediendOp.split(" ")[1]}</div>
+              </td>
               <td>
-                {r.naam}
-                <div className="hulp" style={{ marginTop: 0 }}>{r.email}</div>
+                <span className="naam-met-mail" title={r.email}>
+                  {r.naam}
+                </span>
               </td>
               <td>
                 <span className={`label ${r.soort === "DEFECT" ? "defect" : "taak"}`}>
@@ -95,10 +99,16 @@ export default function Tabel({
                 </td>
               )}
               <td>
-                <MailStatus mail={r.statusMail} />
+                <MailVinkje mail={r.statusMail} />
               </td>
               <td>
-                {actief ? <PrioriteitVeld id={r.id} prioriteit={r.prioriteit} /> : (r.prioriteit ?? "–")}
+                {actief ? (
+                  <PrioriteitVeld id={r.id} prioriteit={r.prioriteit} />
+                ) : r.prioriteit ? (
+                  <span className={`label prio-${r.prioriteit}`}>{r.prioriteit}</span>
+                ) : (
+                  "–"
+                )}
               </td>
               <td>
                 {actief ? (

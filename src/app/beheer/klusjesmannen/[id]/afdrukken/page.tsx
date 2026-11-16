@@ -46,7 +46,7 @@ export default async function Afdruklijst({ params }: { params: Promise<{ id: st
           <tbody>
             {aanvragen.map((a) => (
               <tr key={a.id}>
-                <td style={{ fontWeight: 700, textAlign: "center" }}>{a.prioriteit ?? "–"}</td>
+                <td style={{ textAlign: "center" }}>{a.prioriteit ? <span className={`label prio-${a.prioriteit}`}>{a.prioriteit}</span> : "–"}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{a.volgnummer}</td>
                 <td>{SOORT_LABEL[a.soort]}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{a.campus}</td>
