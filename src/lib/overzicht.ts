@@ -24,7 +24,8 @@ export type Rij = {
   ingediendOp: string;
   naam: string;
   email: string;
-  soort: "DEFECT" | "TAAK";
+  soort: "DEFECT" | "TAAK" | "GEVAARLIJK";
+  directGevaar: boolean | null;
   campus: string;
   locatie: string;
   beschrijving: string;
@@ -50,6 +51,7 @@ export function naarRij(a: AanvraagVolledig): Rij {
     naam: a.naam,
     email: a.email,
     soort: a.soort,
+    directGevaar: a.directGevaar,
     campus: a.campus,
     locatie: a.locatie,
     beschrijving: a.beschrijving,

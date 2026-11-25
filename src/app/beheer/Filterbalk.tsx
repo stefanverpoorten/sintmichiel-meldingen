@@ -48,6 +48,7 @@ export default function Filterbalk({
           <option value="">Alle</option>
           <option value="DEFECT">Defect</option>
           <option value="TAAK">Taak</option>
+          <option value="GEVAARLIJK">Gevaarlijke situatie</option>
         </select>
       </label>
       {weergave === "actief" && (

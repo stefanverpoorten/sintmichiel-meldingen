@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { aanvraagInclude, klusjesmanOpties, naarRij } from "@/lib/overzicht";
 import { datumTijd, schooljaar } from "@/lib/datum";
-import { MAIL_TYPE_LABEL, SOORT_LABEL } from "@/lib/constanten";
+import { MAIL_TYPE_LABEL, SOORT_KLASSE, SOORT_LABEL } from "@/lib/constanten";
 import {
   ActieKnop,
   ControleVeld,
@@ -41,7 +41,8 @@ export default async function Detail({ params }: { params: Promise<{ id: string 
       </p>
       <div className="titelrij">
         <h1>Aanvraag {a.volgnummer}</h1>
-        <span className={`label ${a.soort === "DEFECT" ? "defect" : "taak"}`}>{SOORT_LABEL[a.soort]}</span>
+        <span className={`label ${SOORT_KLASSE[a.soort]}`}>{SOORT_LABEL[a.soort]}</span>
+        {a.directGevaar && <span className="label gevaar">⚠ direct gevaar</span>}
       </div>
 
       <div className="detail-grid">
@@ -52,6 +53,7 @@ export default async function Detail({ params }: { params: Promise<{ id: string 
               <dt>Naam</dt><dd>{a.naam}</dd>
               <dt>E-mail</dt><dd><a href={`mailto:${a.email}`}>{a.email}</a></dd>
               <dt>Soort</dt><dd>{SOORT_LABEL[a.soort]}</dd>
+              {a.soort === "GEVAARLIJK" && (<><dt>Direct gevaar</dt><dd>{a.directGevaar ? "Ja" : "Nee"}</dd></>)}
               <dt>Campus</dt><dd>{a.campus}</dd>
               <dt>Locatie</dt><dd>{a.locatie}</dd>
               <dt>Beschrijving</dt><dd>{a.beschrijving}</dd>

@@ -120,6 +120,12 @@ table.lijst { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .label { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: .78rem; font-weight: 700; white-space: nowrap; }
 .label.defect { background: #fbe3dc; color: #9b330b; }
 .label.taak { background: #dff1f0; color: #00665f; }
+.label.gevaarlijk { background: #fde2c4; color: #8a3b00; }
+.label.gevaar { background: #b3261e; color: #fff; }
+.keuze.breed { grid-column: 1 / -1; }
+/* Ingebed in het gecombineerde formulier: geen eigen achtergrondmarge bovenaan */
+html.ingebed body { background: transparent; }
+html.ingebed .publiek { padding: 0 0 24px; }
 .label.ok { background: #e7f5ee; color: var(--succes); }
 .label.fout { background: #fdecea; color: var(--fout); }
 .label.test { background: #fff3cf; color: #7a4f00; }

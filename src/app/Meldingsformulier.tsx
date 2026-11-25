@@ -1,10 +1,30 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { isToegelaten, MAX_BYTES, verkleinFoto } from "./fotoVerkleinen";
+import { meldAanOuder } from "./Ingebed";
+
+export type SoortCode = "DEFECT" | "TAAK" | "GEVAARLIJK";
+
+const SOORT_TEKST: Record<SoortCode, { label: string; titel: string }> = {
+  DEFECT: { label: "🔧 Defect", titel: "Defect melden" },
+  TAAK: { label: "📋 Taak", titel: "Taak aanvragen" },
+  GEVAARLIJK: { label: "⚠️ Gevaarlijke situatie", titel: "Gevaarlijke situatie melden" },
+};
 
 type Foto = { id: string; bestand: File; voorbeeld: string };
 
-export default function Meldingsformulier({ campussen }: { campussen: string[] }) {
+export default function Meldingsformulier({
+  campussen,
+  vasteSoort = null,
+  ouder = null,
+}: {
+  campussen: string[];
+  /** Soort die al gekozen werd (bv. in het gecombineerde formulier). */
+  vasteSoort?: SoortCode | null;
+  /** Adres van het gecombineerde formulier als dit formulier daarin ingebed is. */
+  ouder?: string | null;
+}) {
+  const [soort, setSoort] = useState<SoortCode | null>(vasteSoort);
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [bezig, setBezig] = useState(false);
   const [fotoBezig, setFotoBezig] = useState(false);
@@ -110,6 +130,7 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
         setWaarschuwing(json.waarschuwing ?? null);
         setVolgnummer(json.volgnummer);
         window.scrollTo({ top: 0 });
+        meldAanOuder(ouder, { type: "boven" });
       }
     } catch {
       setFout("Geen verbinding. Controleer je internet en probeer het opnieuw.");
@@ -126,6 +147,11 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
   }
 
   function nieuweMelding() {
+    if (ouder) {
+      // In het gecombineerde formulier: terug naar de keuze (taak, defect, EHBO, …).
+      meldAanOuder(ouder, { type: "opnieuw" });
+      return;
+    }
     setGesloten(false);
     setVolgnummer(null);
     setFotos([]);
@@ -164,9 +190,11 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
           <button className="knop secundair" onClick={nieuweMelding}>
             Nog iets melden
           </button>
-          <button className="knop" onClick={sluiten}>
-            Sluiten
-          </button>
+          {!ouder && (
+            <button className="knop" onClick={sluiten}>
+              Sluiten
+            </button>
+          )}
         </div>
       </div>
     );
@@ -174,7 +202,7 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
 
   return (
     <form ref={formRef} className="kaart" onSubmit={verzend} noValidate={false}>
-      <h1>Defect melden of taak aanvragen</h1>
+      <h1>{vasteSoort ? SOORT_TEKST[vasteSoort].titel : "Defect, taak of gevaarlijke situatie melden"}</h1>
       <p className="intro">
         Vul het formulier in. Velden met <span className="verplicht">*</span> zijn verplicht.
       </p>
@@ -209,19 +237,38 @@ export default function Meldingsformulier({ campussen }: { campussen: string[] }
         />
       </div>
 
-      <fieldset className="veld">
-        <legend>Soort <span className="verplicht">*</span></legend>
-        <div className="keuzes">
-          <label className="keuze">
-            <input type="radio" name="soort" value="DEFECT" required />
-            <span>🔧 Defect</span>
-          </label>
-          <label className="keuze">
-            <input type="radio" name="soort" value="TAAK" required />
-            <span>📋 Taak</span>
-          </label>
-        </div>
-      </fieldset>
+      {vasteSoort ? (
+        <input type="hidden" name="soort" value={vasteSoort} />
+      ) : (
+        <fieldset className="veld">
+          <legend>Soort <span className="verplicht">*</span></legend>
+          <div className="keuzes">
+            {(["DEFECT", "TAAK", "GEVAARLIJK"] as const).map((s) => (
+              <label className={`keuze${s === "GEVAARLIJK" ? " breed" : ""}`} key={s}>
+                <input type="radio" name="soort" value={s} required onChange={() => setSoort(s)} />
+                <span>{SOORT_TEKST[s].label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      {soort === "GEVAARLIJK" && (
+        <fieldset className="veld">
+          <legend>Is er direct gevaar? <span className="verplicht">*</span></legend>
+          <div className="keuzes">
+            <label className="keuze">
+              <input type="radio" name="directGevaar" value="ja" required />
+              <span>Ja</span>
+            </label>
+            <label className="keuze">
+              <input type="radio" name="directGevaar" value="nee" required />
+              <span>Nee</span>
+            </label>
+          </div>
+          <div className="hulp">Bij direct gevaar: maak de plek veilig of zet ze af en verwittig meteen iemand van de directie.</div>
+        </fieldset>
+      )}
 
       <fieldset className="veld">
         <legend>Campus <span className="verplicht">*</span></legend>

@@ -25,10 +25,13 @@ const schema = z.object({
     .refine((e) => e.endsWith(TOEGELATEN_DOMEIN), {
       message: `Je e-mailadres moet eindigen op ${TOEGELATEN_DOMEIN}.`,
     }),
-  soort: z.enum(["DEFECT", "TAAK"], { message: "Kies Defect of Taak." }),
+  soort: z.enum(["DEFECT", "TAAK", "GEVAARLIJK"], { message: "Kies Defect, Taak of Gevaarlijke situatie." }),
+  directGevaar: z.enum(["ja", "nee", ""]).optional(),
   campus: z.enum(CAMPUSSEN, { message: "Kies een campus." }),
   locatie: z.string().trim().min(1, "Vul de locatie of het lokaalnummer in.").max(200),
   beschrijving: z.string().trim().min(1, "Vul een beschrijving in.").max(5000),
+}).refine((d) => d.soort !== "GEVAARLIJK" || d.directGevaar === "ja" || d.directGevaar === "nee", {
+  message: "Duid aan of er direct gevaar is.",
 });
 
 function fout(bericht: string, status = 400) {
@@ -80,12 +83,14 @@ async function verwerk(req: Request) {
     naam: form.get("naam") ?? "",
     email: form.get("email") ?? "",
     soort: form.get("soort") ?? "",
+    directGevaar: String(form.get("directGevaar") ?? ""),
     campus: form.get("campus") ?? "",
     locatie: form.get("locatie") ?? "",
     beschrijving: form.get("beschrijving") ?? "",
   });
   if (!parsed.success) return fout(parsed.error.issues[0]?.message ?? "Controleer je gegevens.");
-  const d = parsed.data;
+  const { directGevaar, ...d } = parsed.data;
+  const gevaar = d.soort === "GEVAARLIJK" ? directGevaar === "ja" : null;
 
   // 5. Foto's controleren en verkleinen (serverkant).
   const bestanden = form.getAll("fotos").filter((f): f is File => f instanceof File && f.size > 0);
@@ -133,6 +138,7 @@ async function verwerk(req: Request) {
     data: {
       volgnummer,
       ...d,
+      directGevaar: gevaar,
       interneOpmerking: fotoFout
         ? `Let op: de aanvrager voegde ${verwerkt.length} foto('s) toe, maar die konden niet opgeslagen worden.`
         : undefined,

@@ -54,7 +54,7 @@ export function bouwWhere(weergave: Weergave, f: Filters): Prisma.AanvraagWhereI
   }
 
   if (f.campus) en.push({ campus: f.campus });
-  if (f.soort === "DEFECT" || f.soort === "TAAK") en.push({ soort: f.soort });
+  if (f.soort === "DEFECT" || f.soort === "TAAK" || f.soort === "GEVAARLIJK") en.push({ soort: f.soort });
   if (f.status === "leeg") en.push({ status: null });
   else if (f.status === "G" || f.status === "NG") en.push({ status: f.status });
   if (f.prioriteit === "leeg") en.push({ prioriteit: null });

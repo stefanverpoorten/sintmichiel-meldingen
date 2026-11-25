@@ -17,6 +17,7 @@ function gegevens(a: Aanvraag, reden?: string): Gegevens {
     naam: a.naam,
     volgnummer: a.volgnummer,
     soort: a.soort,
+    directGevaar: a.directGevaar,
     campus: a.campus,
     locatie: a.locatie,
     beschrijving: a.beschrijving,

@@ -132,6 +132,7 @@ Je stelt ze in via Vercel → je project → **Settings → Environment Variable
 | `RATE_LIMIT_MAX` | nee | Maximum aantal aanvragen per IP-adres binnen de tijdspanne. Standaard 5. | `5` |
 | `RATE_LIMIT_WINDOW_MIN` | nee | Die tijdspanne in minuten. Standaard 15. | `15` |
 | `FOTO_OPSLAG` | nee | `database` = foto's altijd in de database bewaren in plaats van in Vercel Blob. Handig als Blob niet werkt. Zonder deze instelling probeert de app eerst Blob en valt ze automatisch terug op de database. | `database` |
+| `FORMULIER_URL` | nee | Het webadres van het gecombineerde formulier (repository `sintmichiel-formulier`). Alleen dat adres mag dit formulier in een kader tonen. Leeg = het formulier kan nergens ingebed worden. | `https://sintmichiel-formulier.vercel.app` |
 | `IP_HASH_SALT` | nee | Extra geheim om IP-adressen onleesbaar op te slaan. Standaard wordt `AUTH_SECRET` gebruikt. | |
 | `AUTH_DEV_LOGIN` | nee | `true` = testlogin zonder Microsoft. **Werkt nooit op Vercel**, enkel lokaal. | `true` |
 
@@ -309,6 +310,7 @@ NOTIFY_EMAILS                   geert.demeulemeester@sintmichiel.be,stefan.verpo
 MAIL_FROM                       stefan.verpoorten@sintmichiel.be
 MAIL_MODE                       test
 APP_URL                         https://sintmichiel-meldingen.vercel.app
+FORMULIER_URL                   https://sintmichiel-formulier.vercel.app   (enkel als je het gecombineerde formulier gebruikt)
 ```
 
 > Een `AUTH_SECRET` maken zonder programmeerkennis: ga naar <https://generate-secret.vercel.app/32> en kopieer de tekst die je daar krijgt.
@@ -417,6 +419,18 @@ Bovenaan het beheer staat dan een gele balk. Zet `MAIL_MODE=live` om echt te ver
 ---
 
 ## 8. Onderhoud en veelgestelde vragen
+
+**Gevaarlijke situaties**
+Naast *Defect* en *Taak* bestaat de soort **Gevaarlijke situatie**. Wie die kiest, moet ook aanduiden of er **direct gevaar** is (ja/nee).
+- In het overzicht staat een oranje label "Gevaarlijke situatie", en bij direct gevaar ook een rood label "⚠ direct gevaar".
+- Je kunt filteren op de soort, en de Excel-export heeft een kolom "Direct gevaar".
+- De mails gaan naar dezelfde personen als bij een defect of taak (`NOTIFY_EMAILS`). Bij direct gevaar staat "(DIRECT GEVAAR)" mee in het onderwerp, via het invulveld `{Soort}`.
+
+**Het gecombineerde formulier (sintmichiel-formulier)**
+Dat formulier laat eerst kiezen tussen taak, defect, gevaarlijke situatie en EHBO, en toont daarna het formulier van deze app (of van de EHBO-app) in een kader. De aanvragen komen gewoon hier binnen.
+- Daarvoor moet `FORMULIER_URL` ingevuld zijn (hoofdstuk 3).
+- Het formulier van deze app blijft daarnaast gewoon bruikbaar op zijn eigen adres.
+- Met `?soort=DEFECT`, `?soort=TAAK` of `?soort=GEVAARLIJK` achter het adres is de soort meteen gekozen.
 
 **Een beheerder toevoegen of verwijderen?**
 Pas `ADMIN_EMAILS` aan in Vercel en klik op Redeploy. Gebruik je de instelling uit stap 4.5? Voeg de persoon dan ook toe bij "Users and groups" in Entra.

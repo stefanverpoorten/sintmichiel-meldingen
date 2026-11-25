@@ -10,8 +10,8 @@ export type Sjabloon = { onderwerp: string; inhoud: string };
 export const INVULVELDEN: Record<string, string> = {
   "{naam}": "naam van de aanvrager",
   "{volgnummer}": "bv. 2026-0012",
-  "{soort}": "defect of taak (kleine letters)",
-  "{Soort}": "Defect of Taak (hoofdletter)",
+  "{soort}": "defect, taak of gevaarlijke situatie (kleine letters)",
+  "{Soort}": "Defect, Taak of Gevaarlijke situatie (hoofdletter)",
   "{campus}": "bv. Campus 3",
   "{locatie}": "bv. Lokaal 1.04",
   "{beschrijving}": "de beschrijving van de aanvrager",
@@ -72,7 +72,9 @@ export const STANDAARD: Record<SjabloonType, Sjabloon> = {
 export type Gegevens = {
   naam: string;
   volgnummer: string;
-  soort: "DEFECT" | "TAAK";
+  soort: "DEFECT" | "TAAK" | "GEVAARLIJK";
+  /** Enkel bij een gevaarlijke situatie. */
+  directGevaar?: boolean | null;
   campus: string;
   locatie: string;
   beschrijving: string;
@@ -101,12 +103,18 @@ export function esc(s: string | null | undefined): string {
     .replace(/"/g, "&quot;");
 }
 
+// Bij een gevaarlijke situatie met direct gevaar staat dat er meteen bij, ook in het onderwerp van de mail.
+function soortTekst(g: Gegevens): string {
+  if (g.soort === "GEVAARLIJK") return g.directGevaar ? "Gevaarlijke situatie (DIRECT GEVAAR)" : "Gevaarlijke situatie";
+  return g.soort === "DEFECT" ? "Defect" : "Taak";
+}
+
 function waarden(g: Gegevens): Record<string, string> {
   return {
     "{naam}": g.naam,
     "{volgnummer}": g.volgnummer,
-    "{soort}": g.soort === "DEFECT" ? "defect" : "taak",
-    "{Soort}": g.soort === "DEFECT" ? "Defect" : "Taak",
+    "{soort}": soortTekst(g).toLowerCase(),
+    "{Soort}": soortTekst(g),
     "{campus}": g.campus,
     "{locatie}": g.locatie,
     "{beschrijving}": g.beschrijving,

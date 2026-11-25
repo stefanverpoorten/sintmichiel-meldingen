@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { datum } from "@/lib/datum";
-import { SOORT_LABEL } from "@/lib/constanten";
+import { soortMetGevaar } from "@/lib/constanten";
 import AfdrukKnop from "./AfdrukKnop";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export default async function Afdruklijst({ params }: { params: Promise<{ id: st
               <tr key={a.id}>
                 <td style={{ textAlign: "center" }}>{a.prioriteit ? <span className={`label prio-${a.prioriteit}`}>{a.prioriteit}</span> : "–"}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{a.volgnummer}</td>
-                <td>{SOORT_LABEL[a.soort]}</td>
+                <td>{soortMetGevaar(a.soort, a.directGevaar)}</td>
                 <td style={{ whiteSpace: "nowrap" }}>{a.campus}</td>
                 <td>{a.locatie}</td>
                 <td style={{ whiteSpace: "pre-wrap" }}>{a.beschrijving}</td>

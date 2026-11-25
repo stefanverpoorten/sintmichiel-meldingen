@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { KlusjesmanOptie, Rij } from "@/lib/overzicht";
 import type { Weergave } from "@/lib/filters";
+import { SOORT_KLASSE, SOORT_LABEL } from "@/lib/constanten";
 import {
   ActieKnop,
   Beschrijving,
@@ -73,9 +74,8 @@ export default function Tabel({
                 </span>
               </td>
               <td>
-                <span className={`label ${r.soort === "DEFECT" ? "defect" : "taak"}`}>
-                  {r.soort === "DEFECT" ? "Defect" : "Taak"}
-                </span>
+                <span className={`label ${SOORT_KLASSE[r.soort]}`}>{SOORT_LABEL[r.soort]}</span>
+                {r.directGevaar && <div className="label gevaar" style={{ marginTop: 4 }}>⚠ direct gevaar</div>}
               </td>
               <td className="nowrap">{r.campus}</td>
               <td>{r.locatie}</td>

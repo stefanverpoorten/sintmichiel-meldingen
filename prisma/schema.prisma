@@ -14,6 +14,7 @@ datasource db {
 enum Soort {
   DEFECT
   TAAK
+  GEVAARLIJK // gevaarlijke situatie
 }
 
 enum Status {
@@ -46,6 +47,7 @@ model Aanvraag {
   naam             String
   email            String
   soort            Soort
+  directGevaar     Boolean? // enkel bij een gevaarlijke situatie: is er direct gevaar?
   campus           String
   locatie          String
   beschrijving     String
