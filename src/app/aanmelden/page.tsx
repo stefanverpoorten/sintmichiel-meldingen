@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { config, isBeheerder } from "@/lib/config";
 import { controleerLoginInstellingen } from "@/lib/configCheck";
+import AutoAanmelden from "./AutoAanmelden";
 
 export default async function Aanmelden({
   searchParams,
 }: {
-  searchParams: Promise<{ fout?: string; error?: string; als?: string }>;
+  searchParams: Promise<{ fout?: string; error?: string; als?: string; auto?: string }>;
 }) {
   const sessie = await auth();
   if (isBeheerder(sessie?.user?.email)) redirect("/beheer");
@@ -75,6 +76,7 @@ export default async function Aanmelden({
               await signIn("microsoft-entra-id", { redirectTo: "/beheer" });
             }}
           >
+            <AutoAanmelden actief={sp.auto === "1" && !sp.error && !sp.fout} />
             <button className="knop groot" type="submit">
               Aanmelden met Microsoft 365
             </button>
