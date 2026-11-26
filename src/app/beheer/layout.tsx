@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/auth";
+import { DRBS_URL } from "@/lib/drbs";
 import { vereisBeheerder } from "@/lib/toegang";
 import { config } from "@/lib/config";
 import Navigatie from "./Navigatie";
@@ -18,6 +19,9 @@ export default async function BeheerLayout({ children }: { children: React.React
       )}
       <header className="kop niet-afdrukken">
         <div className="kop-binnen">
+          <a href={DRBS_URL} className="knop secundair klein" title="Terug naar de DRBS-startpagina">
+            ← DRBS
+          </a>
           <Link href="/beheer">
             <img src="/logo.jpg" alt="Sint-Michiel" />
           </Link>
